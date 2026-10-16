@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="logo">TM</div>
+    <nav>
+      <button class="nav-btn active" data-view="all" title="All tasks" aria-label="All tasks">
+        <svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span>All tasks</span></button>
+      <button class="nav-btn" data-view="in_progress" title="In progress" aria-label="In progress">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>In progress</span></button>
+      <button class="nav-btn" data-view="overdue" title="Overdue" aria-label="Overdue">
+        <svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.01"/></svg><span>Overdue</span></button>
+      <button class="nav-btn" data-view="completed" title="Completed" aria-label="Completed">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span>Completed</span></button>
+      <button class="nav-btn" id="sidebarAssigned" title="Assigned tasks" aria-label="Assigned tasks">
+        <svg viewBox="0 0 24 24"><path d="M8 5h12v16H4V5h2M9 3h6v4H9zM8 12h8M8 16h6"/></svg><span>Assigned tasks</span></button>
+      <button class="nav-btn" id="sidebarReview" title="Review tasks" aria-label="Review tasks">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 12l3 3 5-6"/></svg><span>Review tasks</span></button>
+    </nav>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <h1>My Tasks</h1>
+      <label class="search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="search" type="search" placeholder="Search by title" aria-label="Search tasks by title">
+      </label>
+      <button class="top-action" id="notificationsBtn" aria-label="Notifications" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationCount" class="notification-count" hidden>0</span>
+      </button>
+      <button class="avatar" id="profileBtn" aria-label="Open profile">You</button>
+    </header>
+
+    <section class="stats" id="stats" aria-label="Task summary">
+      <button class="stat" data-view="all"><b id="s-total">0</b><span>Total</span></button>
+      <button class="stat" data-view="pending"><b id="s-pending">0</b><span>Pending</span></button>
+      <button class="stat" data-view="in_progress"><b id="s-in_progress">0</b><span>In progress</span></button>
+      <button class="stat" data-view="completed"><b id="s-completed">0</b><span>Completed</span></button>
+      <button class="stat warn" data-view="overdue"><b id="s-overdue">0</b><span>Overdue</span></button>
+      <button class="stat soon" data-view="soon"><b id="s-due_soon">0</b><span>Due in 3 days</span></button>
+    </section>
+
+    <div class="tabs quick-tabs" id="workflowTabs" role="tablist" aria-label="Task workflow views">
+      <button role="tab" data-workflow="assigned" class="active">Assigned Tasks <span id="assignedCount">0</span></button>
+      <button role="tab" data-workflow="accepted">Accepted Tasks <span id="acceptedCount">0</span></button>
+      <button role="tab" data-workflow="review">Review Tasks <span id="reviewCount">0</span></button>
+    </div>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="Filter by status">
+      <button role="tab" data-status="" class="active">All</button>
+      <button role="tab" data-status="pending">Pending</button>
+      <button role="tab" data-status="in_progress">In Progress</button>
+      <button role="tab" data-status="completed">Completed</button>
+    </div>
+
+    <div class="toolbar">
+      <select id="fPriority" aria-label="Filter by priority">
+        <option value="">All priorities</option><option value="high">High</option>
+        <option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+      <select id="fDue" aria-label="Filter by deadline">
+        <option value="">Any deadline</option><option value="overdue">Overdue</option><option value="soon">Due in 3 days</option>
+      </select>
+      <select id="fSort" aria-label="Sort tasks">
+        <option value="newest">Newest first</option><option value="deadline">Deadline: soonest</option>
+        <option value="priority">Priority: high first</option><option value="title">Title: A to Z</option>
+      </select>
+      <button class="btn ghost" id="clearBtn">Clear filters</button>
+      <button class="btn primary" id="newBtn">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create new task</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Priority</th><th>Status</th><th>Deadline</th><th class="right">Actions</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden></div>
+    </div>
+
+    <footer class="pager">
+      <label>Rows per page
+        <select id="pageSize"><option>5</option><option selected>10</option><option>25</option><option>50</option></select>
+      </label>
+      <span id="range"></span>
+      <button class="icon-btn" id="prev" aria-label="Previous page"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <button class="icon-btn" id="next" aria-label="Next page"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+    </footer>
+  </main>
+</div>
+
+<dialog id="taskDialog">
+  <form id="taskForm" novalidate>
+    <h2 id="dlgTitle">Create new task</h2>
+    <div class="alert" id="formError" hidden></div>
+    <label class="field">Title <span class="req">*</span>
+      <input name="title" maxlength="200" autocomplete="off" placeholder="What needs to be done?">
+      <small class="err" data-for="title"></small></label>
+    <label class="field">Description
+      <textarea name="description" rows="3" maxlength="2000" placeholder="Add details (optional)"></textarea>
+      <small class="err" data-for="description"></small></label>
+    <div class="row">
+      <label class="field">Deadline<input type="date" name="deadline"><small class="err" data-for="deadline"></small></label>
+      <label class="field">Priority
+        <select name="priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+        <small class="err" data-for="priority"></small></label>
+      <label class="field">Status
+        <select name="status"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select>
+        <small class="err" data-for="status"></small></label>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn ghost" id="cancelBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="saveBtn">Save task</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="previewDialog" class="feature-dialog">
+  <div class="dialog-heading"><div><p class="eyebrow">TASK PREVIEW</p><h2 id="previewTitle">Task details</h2></div><button type="button" class="icon-btn" data-close="previewDialog" aria-label="Close preview">×</button></div>
+  <div id="previewContent" class="preview-content"></div>
+  <div class="actions"><button class="btn ghost" data-close="previewDialog">Close</button><button class="btn ghost" id="previewAcceptBtn" hidden>Accept task</button><button class="btn primary" id="previewEditBtn">Edit task</button></div>
+</dialog>
+
+<dialog id="profileDialog" class="feature-dialog">
+  <div class="dialog-heading"><div><p class="eyebrow">YOUR DETAILS</p><h2>Profile</h2></div><button type="button" class="icon-btn" data-close="profileDialog" aria-label="Close profile">×</button></div>
+  <p class="dialog-intro">Personalize your profile. Your details and photo are saved in this local task manager.</p>
+  <form id="profileForm" novalidate>
+    <div class="alert" id="profileError" hidden></div>
+    <div class="profile-photo-section">
+      <div class="profile-photo-preview" id="profilePhotoPreview" aria-label="Profile photo preview">SS</div>
+      <div class="profile-photo-controls">
+        <strong>Profile photo</strong><span>Choose a JPG, PNG, or WEBP image (up to 2 MB).</span>
+        <label class="btn ghost photo-choose" for="profilePhotoInput">Choose photo</label>
+        <input id="profilePhotoInput" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp">
+        <button type="button" class="photo-remove" id="removeProfilePhoto">Remove photo</button>
+      </div>
+    </div>
+    <label class="field">Display name <span class="req">*</span><input name="display_name" maxlength="80" required placeholder="Your name"><small class="err" data-profile-error="display_name"></small></label>
+    <label class="field">Email address<input name="email" type="email" maxlength="254" placeholder="you@example.com"><small class="err" data-profile-error="email"></small></label>
+    <label class="field">Phone number<input name="phone" type="tel" maxlength="30" placeholder="Optional"><small class="err" data-profile-error="phone"></small></label>
+    <div class="actions"><button type="button" class="btn ghost" data-close="profileDialog">Cancel</button><button class="btn primary" id="saveProfileBtn" type="submit">Save profile</button></div>
+  </form>
+</dialog>
+
+<dialog id="notificationsDialog" class="feature-dialog notifications-dialog">
+  <div class="dialog-heading"><div><p class="eyebrow">ACTIVITY CENTER</p><h2>Notifications</h2><p class="dialog-intro">Task activity and deadline reminders saved in your database.</p></div><button type="button" class="icon-btn" data-close="notificationsDialog" aria-label="Close notifications">×</button></div>
+  <div class="notification-toolbar"><span id="notificationSummary">Loading notifications…</span><div><button class="btn ghost" id="readAllBtn">Mark all read</button><button class="btn ghost" id="clearReadBtn">Clear read</button></div></div>
+  <div id="notificationList" class="notification-list"></div>
+</dialog>
+
+<dialog id="confirmDialog">
+  <h2>Delete this task?</h2>
+  <p id="confirmText"></p>
+  <div class="actions">
+    <button class="btn ghost" id="confirmNo">Keep task</button>
+    <button class="btn danger" id="confirmYes">Delete task</button>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
